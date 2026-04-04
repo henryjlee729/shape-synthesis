@@ -28,7 +28,9 @@ class PointCloudVAE(nn.Module):
             nn.ReLU(),
             nn.Linear(512, 1024),
             nn.ReLU(),
-            nn.Linear(1024, num_points * 3),
+            nn.Linear(1024, 1536),
+            nn.ReLU(),
+            nn.Linear(1536, num_points * 3),
         )
 
     def encode(self, x):

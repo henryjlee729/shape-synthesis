@@ -20,7 +20,16 @@ class ChairPointCloudDataset(Dataset):
         return len(self.clouds)
 
     def __getitem__(self, idx):
-        return torch.FloatTensor(self.clouds[idx])
+        points = self.clouds[idx].copy()
+
+        centroid = np.mean(points, axis=0)
+        points = points - centroid
+
+        scale = np.max(np.linalg.norm(points, axis=1))
+        if scale > 0:
+            points = points / scale
+
+        return torch.FloatTensor(points)
 
 def chamfer_distance(pc1, pc2):
     # pc1, pc2: (batch, num_points, 3)
