@@ -117,12 +117,11 @@ def draw_mesh(vertices, faces):
             glVertex3f(*vertices[idx])
     glEnd()
 
-def main():
+def main(path=None):
     DEFAULT_FILE = "./output/chair_mesh.ply"
 
-    path = DEFAULT_FILE
-    if len(sys.argv) > 1:
-        path = sys.argv[1]
+    if path is None:
+        path = DEFAULT_FILE
 
     if not Path(path).exists():
         raise FileNotFoundError(f"File not found: {path}")
@@ -196,6 +195,7 @@ def main():
         clock.tick(60)
 
     pygame.quit()
+
 
 if __name__ == "__main__":
     main()

@@ -3,3 +3,5 @@
 .DS_Store
 __pycache__/
 .venv
+viewer/__pycache__/
+surface_reconstruction/__pycache__/
