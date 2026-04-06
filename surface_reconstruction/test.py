@@ -2,10 +2,13 @@ import numpy as np
 import open3d as o3d
 
 # Load .pts file
-points = np.loadtxt("./test_chair_data/1a6f615e8b1b5ae4dbbc9440457e303e.pts")   # shape: (N, 3)
+points = np.loadtxt("./test_chair_data/1a6f615e8b1b5ae4dbbc9440457e303e.pts")
 
 pcd = o3d.geometry.PointCloud()
 pcd.points = o3d.utility.Vector3dVector(points)
+
+# Remove outliers BEFORE reconstruction
+pcd, _ = pcd.remove_statistical_outlier(nb_neighbors=20, std_ratio=2.0)
 
 pcd.estimate_normals(
     search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=0.15, max_nn=50)
@@ -20,9 +23,20 @@ mesh = o3d.geometry.TriangleMesh.create_from_point_cloud_ball_pivoting(
     pcd, o3d.utility.DoubleVector(radii)
 )
 
-pcd, _ = pcd.remove_statistical_outlier(nb_neighbors=20, std_ratio=2.0)
+# Optional cleanup
+mesh.remove_degenerate_triangles()
+mesh.remove_duplicated_triangles()
+mesh.remove_duplicated_vertices()
+mesh.remove_non_manifold_edges()
 
 mesh.compute_vertex_normals()
+
+# Save output mesh
+output_path = "./output/chair_mesh.ply"
+o3d.io.write_triangle_mesh(output_path, mesh)
+print(f"Saved mesh to {output_path}")
+
+# View mesh
 o3d.visualization.draw_geometries([mesh], mesh_show_back_face=True)
 
 # Evaluations:
