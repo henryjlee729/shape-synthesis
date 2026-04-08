@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-points = np.loadtxt("output/chair_3.pts")
+points = np.loadtxt("output/chair_0.pts")
 
 fig = plt.figure(figsize=(8, 8))
 ax = fig.add_subplot(111, projection='3d')
