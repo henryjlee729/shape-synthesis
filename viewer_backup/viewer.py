@@ -109,7 +109,7 @@ def draw_mesh(vertices, faces):
 
 
 def main(path=None):
-    DEFAULT_FILE = './test/output.ply'
+    DEFAULT_FILE = './output/chair_mesh.ply'
 
     if path is None:
         path = DEFAULT_FILE

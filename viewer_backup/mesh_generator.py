@@ -33,7 +33,7 @@ def generate_mesh(input_path: str, output_path: str | None = None) -> str:
     mesh.compute_vertex_normals()
 
     if output_path is None:
-        output_dir = Path('./test')
+        output_dir = Path('./output')
         output_dir.mkdir(parents=True, exist_ok=True)
         output_path = str(output_dir / f'{Path(input_path).stem}_mesh.ply')
 
