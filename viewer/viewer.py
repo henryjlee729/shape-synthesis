@@ -6,23 +6,17 @@ from pygame.locals import DOUBLEBUF, OPENGL
 from OpenGL.GL import *
 from OpenGL.GLU import gluPerspective
 import open3d as o3d
+from mesh_generator import generate_mesh
+
 
 def load_geometry(path: str):
-    ext = path.split(".")[-1].lower()
+    ext = path.split('.')[-1].lower()
 
-    if ext == "pts":
-        points = np.loadtxt(path, dtype=np.float32)[:, :3]
+    if ext == 'pts':
+        path = generate_mesh(path)
+        ext = 'ply'
 
-        center = points.mean(axis=0)
-        points = points - center
-
-        scale = np.max(np.linalg.norm(points, axis=1))
-        if scale > 0:
-            points = points / scale
-
-        return "points", points.astype(np.float32)
-
-    elif ext in ["ply", "obj"]:
+    if ext in ['ply', 'obj']:
         mesh = o3d.io.read_triangle_mesh(path)
         mesh.compute_vertex_normals()
 
@@ -36,10 +30,10 @@ def load_geometry(path: str):
         if scale > 0:
             vertices = vertices / scale
 
-        return "mesh", vertices.astype(np.float32), faces.astype(np.int32)
+        return 'mesh', vertices.astype(np.float32), faces.astype(np.int32)
 
-    else:
-        raise ValueError(f"Unsupported file type: {ext}")
+    raise ValueError(f'Unsupported file type: {ext}')
+
 
 def init_opengl(width: int, height: int) -> None:
     glViewport(0, 0, width, height)
@@ -55,6 +49,7 @@ def init_opengl(width: int, height: int) -> None:
     glPointSize(3.0)
 
     glClearColor(0.08, 0.08, 0.10, 1.0)
+
 
 def draw_axes(length: float = 1.2) -> None:
     glLineWidth(2.0)
@@ -73,6 +68,7 @@ def draw_axes(length: float = 1.2) -> None:
     glVertex3f(0.0, 0.0, length)
 
     glEnd()
+
 
 def draw_wire_cube(size: float = 2.2) -> None:
     s = size / 2.0
@@ -102,12 +98,6 @@ def draw_wire_cube(size: float = 2.2) -> None:
         glVertex3f(*v)
     glEnd()
 
-def draw_points(points: np.ndarray):
-    glColor3f(0.3, 0.8, 1.0)
-    glBegin(GL_POINTS)
-    for p in points:
-        glVertex3f(*p)
-    glEnd()
 
 def draw_mesh(vertices, faces):
     glColor3f(0.7, 0.9, 1.0)
@@ -117,27 +107,21 @@ def draw_mesh(vertices, faces):
             glVertex3f(*vertices[idx])
     glEnd()
 
+
 def main(path=None):
-    DEFAULT_FILE = "./output/chair_mesh.ply"
+    DEFAULT_FILE = './output/chair_mesh.ply'
 
     if path is None:
         path = DEFAULT_FILE
 
     if not Path(path).exists():
-        raise FileNotFoundError(f"File not found: {path}")
+        raise FileNotFoundError(f'File not found: {path}')
 
-    data = load_geometry(path)
-
-    if data[0] == "points":
-        points = data[1]
-        vertices, faces = None, None
-    else:
-        vertices, faces = data[1], data[2]
-        points = None
+    _, vertices, faces = load_geometry(path)
 
     pygame.init()
     pygame.display.set_mode((1000, 800), DOUBLEBUF | OPENGL)
-    pygame.display.set_caption("Viewer")
+    pygame.display.set_caption('Viewer')
 
     init_opengl(1000, 800)
 
@@ -185,11 +169,7 @@ def main(path=None):
 
         draw_wire_cube()
         draw_axes()
-
-        if points is not None:
-            draw_points(points)
-        else:
-            draw_mesh(vertices, faces)
+        draw_mesh(vertices, faces)
 
         pygame.display.flip()
         clock.tick(60)
@@ -197,5 +177,5 @@ def main(path=None):
     pygame.quit()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
