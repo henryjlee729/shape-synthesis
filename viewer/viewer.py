@@ -7,7 +7,6 @@ from OpenGL.GL import *
 from OpenGL.GLU import gluPerspective
 from mesh_generator import generate_mesh
 
-
 def load_geometry(path: str):
     ext = path.split('.')[-1].lower()  # Get file extension
 
@@ -59,7 +58,7 @@ def init_opengl(width: int, height: int) -> None:
     glPointSize(3.0)
 
     # Background color (dark gray)
-    glClearColor(0.08, 0.08, 0.10, 1.0)
+    glClearColor(0.02, 0.02, 0.04, 1.0)
 
 def draw_axes(length: float = 1.2) -> None:
     glLineWidth(2.0)
@@ -112,15 +111,31 @@ def draw_wire_cube(size: float = 2.2) -> None:
     glEnd()
 
 def draw_mesh(vertices, faces):
-    glColor3f(0.7, 0.9, 1.0)
-    glBegin(GL_TRIANGLES)
+    # Filled mesh
+    glEnable(GL_POLYGON_OFFSET_FILL)
+    glPolygonOffset(1.0, 1.0)
+    glColor3f(0.65, 0.65, 0.70)
 
-    # For each triangle
+    glBegin(GL_TRIANGLES)
     for face in faces:
         for idx in face:
             glVertex3f(*vertices[idx])
-
     glEnd()
+
+    glDisable(GL_POLYGON_OFFSET_FILL)
+
+    # Triangle edges on top
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+    glLineWidth(1.0)
+    glColor3f(0.08, 0.08, 0.08)
+
+    glBegin(GL_TRIANGLES)
+    for face in faces:
+        for idx in face:
+            glVertex3f(*vertices[idx])
+    glEnd()
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 
 def main(path=None):
     DEFAULT_FILE = './test/output.ply'

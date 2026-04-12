@@ -13,7 +13,7 @@ def generate_chairs(num_chairs=1):
 
     # Load trained model
     model = PointCloudVAE(num_points=2048, latent_dim=128).to(device)
-    model.load_state_dict(torch.load("checkpoints/vae_chair.pth", map_location=device))
+    model.load_state_dict(torch.load("../checkpoints/vae_chair.pth", map_location=device))
     model.eval()
 
     if os.path.exists("test"):
