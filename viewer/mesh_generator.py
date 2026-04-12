@@ -48,14 +48,10 @@ def generate_mesh(input_path: str, output_path: str | None = None) -> str:
 
     # if no output path provided, save to default test folder
     if output_path is None:
-        output_dir = Path('./test')
+        output_dir = Path('../test')
         output_dir.mkdir(parents=True, exist_ok=True)  # ensure directory exists
         output_path = str(output_dir / f'{Path(input_path).stem}_mesh.ply')
 
     # write mesh to disk
     o3d.io.write_triangle_mesh(output_path, mesh)
     return output_path
-
-if __name__ == '__main__':
-    output = generate_mesh('./test_chair_data/1a6f615e8b1b5ae4dbbc9440457e303e.pts')
-    print(f'Saved mesh to {output}')

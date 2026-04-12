@@ -4,7 +4,7 @@ import viewer as viewer
 from generate_points import generate_chairs
 from mesh_generator import generate_mesh
 
-GENERATED_FILE = './test/chair_0.pts'
+GENERATED_FILE = '../test/chair_0.pts'
 
 def draw_status_screen(screen, title_font, info_font, title_text, subtitle_text):
     screen.fill((20, 20, 30))  # clear screen with dark background
@@ -78,7 +78,7 @@ def run_menu():
                     )
                     pygame.event.pump()  # keep window responsive
 
-                    generate_chairs(1)  # generate point cloud
+                    pts_file = generate_chairs(1)
 
                     # show mesh building status
                     draw_status_screen(
@@ -90,8 +90,7 @@ def run_menu():
                     )
                     pygame.event.pump()
 
-                    mesh_file = generate_mesh(GENERATED_FILE)  # convert to mesh
-
+                    mesh_file = generate_mesh(pts_file)
                     return mesh_file  # exit menu and return result
 
         manager.update(time_delta)

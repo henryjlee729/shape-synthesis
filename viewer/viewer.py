@@ -138,7 +138,7 @@ def draw_mesh(vertices, faces):
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 
 def main(path=None):
-    DEFAULT_FILE = './test/output.ply'
+    DEFAULT_FILE = '../test/output.ply'
 
     if path is None:
         path = DEFAULT_FILE
@@ -216,6 +216,3 @@ def main(path=None):
         clock.tick(60)  # limit to 60 FPS
 
     pygame.quit()
-
-if __name__ == '__main__':
-    main()
