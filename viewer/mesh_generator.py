@@ -3,55 +3,80 @@ import numpy as np
 import open3d as o3d
 
 def generate_mesh(input_path: str, output_path: str | None = None) -> str:
-    points = np.loadtxt(input_path, dtype=np.float32)  # load point cloud from file
 
-    # handle case where file has only one point (1D array)
+    # Load point cloud
+    points = np.loadtxt(input_path, dtype=np.float32)
+
+    # Handle edge case: single point
     if points.ndim == 1:
         points = points.reshape(1, -1)
 
-    points = points[:, :3]  # keep only XYZ (ignore extra columns if present)
+    # Keep only XYZ coordinates
+    points = points[:, :3]
 
-    # create Open3D point cloud object
+    if len(points) < 50:
+        raise ValueError("Not enough points to build a mesh.")
+
+    # Normalize point cloud (center + scale)
+    center = points.mean(axis=0)
+    points = points - center
+
+    scale = np.max(np.linalg.norm(points, axis=1))
+    if scale > 0:
+        points = points / scale
+
+    # Create Open3D point cloud
     pcd = o3d.geometry.PointCloud()
     pcd.points = o3d.utility.Vector3dVector(points)
 
-    # remove noisy outlier points
-    pcd, _ = pcd.remove_statistical_outlier(nb_neighbors=20, std_ratio=2.0)
+    # Downsample slightly to reduce noise
+    pcd = pcd.voxel_down_sample(voxel_size=0.015)
 
-    # estimate surface normals (needed for mesh reconstruction)
-    pcd.estimate_normals(
-        search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=0.15, max_nn=50)
+    # Remove statistical outliers
+    pcd, _ = pcd.remove_statistical_outlier(
+        nb_neighbors=20,
+        std_ratio=1.5
     )
 
-    # make normals consistent across the surface
-    pcd.orient_normals_consistent_tangent_plane(30)
+    # Estimate normals (important for reconstruction)
+    pcd.estimate_normals(
+        search_param=o3d.geometry.KDTreeSearchParamHybrid(
+            radius=0.06,
+            max_nn=30
+        )
+    )
 
-    # compute average spacing between neighboring points
+    # Compute average neighbor distance
     distances = pcd.compute_nearest_neighbor_distance()
     avg_dist = np.mean(distances)
 
-    # define multiple radii for ball pivoting (captures different scales)
-    radii = [avg_dist * 2.5, avg_dist * 4.0, avg_dist * 6.5, avg_dist * 8.0]
+    # Alpha controls mesh tightness
+    # smaller = sharper, larger = smoother
+    alpha = avg_dist * 3.0
 
-    # reconstruct mesh using ball pivoting algorithm
-    mesh = o3d.geometry.TriangleMesh.create_from_point_cloud_ball_pivoting(
-        pcd, o3d.utility.DoubleVector(radii)
+    # Alpha shape reconstruction
+    mesh = o3d.geometry.TriangleMesh.create_from_point_cloud_alpha_shape(
+        pcd, alpha
     )
 
-    # clean up mesh artifacts
+    # Cleanup mesh artifacts
     mesh.remove_degenerate_triangles()
     mesh.remove_duplicated_triangles()
     mesh.remove_duplicated_vertices()
     mesh.remove_non_manifold_edges()
 
-    mesh.compute_vertex_normals()  # prepare for rendering
+    # Light smoothing (avoid over-smoothing)
+    mesh = mesh.filter_smooth_taubin(number_of_iterations=1)
 
-    # if no output path provided, save to default test folder
+    # Compute normals for rendering
+    mesh.compute_vertex_normals()
+
+    # Save output
     if output_path is None:
-        output_dir = Path('../test')
-        output_dir.mkdir(parents=True, exist_ok=True)  # ensure directory exists
-        output_path = str(output_dir / f'{Path(input_path).stem}_mesh.ply')
+        base_dir = Path(__file__).resolve().parent
+        output_dir = base_dir.parent / "test"
+        output_dir.mkdir(parents=True, exist_ok=True)
+        output_path = str(output_dir / f"{Path(input_path).stem}_mesh.ply")
 
-    # write mesh to disk
     o3d.io.write_triangle_mesh(output_path, mesh)
     return output_path
