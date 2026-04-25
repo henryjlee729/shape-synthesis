@@ -31,7 +31,7 @@ def run_menu():
 
     width, height = 1000, 800
     screen = pygame.display.set_mode((width, height))
-    pygame.display.set_caption('Neural 3D Shape Generator')
+    pygame.display.set_caption('Shape Synthesis')
 
     manager = pygame_gui.UIManager((width, height))  # handles UI elements
     clock = pygame.time.Clock()
